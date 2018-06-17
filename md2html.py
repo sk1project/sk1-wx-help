@@ -56,9 +56,8 @@ class MdObject(object):
         self.name = name
 
     def write(self, fileptr):
-        if isinstance(self.childs, list):
-            for item in self.childs:
-                item.write(fileptr)
+        for item in self.childs:
+            item.write(fileptr)
 
 
 class MdGroup(MdObject):
