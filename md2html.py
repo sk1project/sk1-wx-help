@@ -28,7 +28,7 @@ mdH3 = '### '
 mdH4 = '#### '
 mdH5 = '##### '
 mdH6 = '###### '
-HEADERS = (mdH1, mdH2, mdH3, mdH4, mdH5, mdH6)
+mdHEADERS = (mdH1, mdH2, mdH3, mdH4, mdH5, mdH6)
 mdHRULE = '---'
 mdIMAGE = '!['
 
@@ -91,7 +91,7 @@ class MdLoader(object):
     @staticmethod
     def check_header(line):
         if line.startswith('#') and ' ' in line:
-            return line.split(' ')[0] + ' ' in HEADERS
+            return line.split(' ')[0] + ' ' in mdHEADERS
         return False
 
     def add_line(self, group_name, name, line):
@@ -164,3 +164,103 @@ class MdSaver(object):
 
 
 save_md = MdSaver()
+
+HTML_HEADER = "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN'"
+HTML_HEADER += """ 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
+<html xmlns='http://www.w3.org/1999/xhtml'>
+<head>
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+</head>
+<body>
+"""
+HTML_FOOTER = "</body></html>"
+
+
+class MdToHtmlConverter(object):
+    html_header = True
+    html_footer = True
+    php_header = False
+    php_footer = False
+    indent = '    '
+
+    def setup(self, **kwargs):
+        for key, value in kwargs.iteritems():
+            setattr(self, key, value)
+
+    def parse_line(self, line):
+        # TODO: needs to be implemented
+        return line
+
+    def __call__(self, fileptr, model):
+        # Write header
+        if self.html_header:
+            fileptr.write(HTML_HEADER)
+
+        # Write body
+        for item in model.childs:
+            if item.name in mdHEADERS:
+                index = len(item.name) - 1
+                txt = self.parse_line(item.text[index + 1:].strip())
+                fileptr.write('<h%d>%s</h%d>\n' % (index, txt, index))
+            elif item.name == mdSPACE:
+                fileptr.write('\n')
+            elif item.name == mdHRULE:
+                fileptr.write('<hr>\n')
+            elif item.name == mdIMAGE:
+                title = ''
+                alt, link = [txt.strip() for txt
+                             in item.text.strip()[2:-1].strip().split('](')]
+                alt = " alt='%s'" if alt else alt
+                if ' ' in link:
+                    index = link.index(' ')
+                    title = " title='%s'" % link[index:].strip()[1:-1]
+                    link = link[:index]
+                txt = "<center><img src='%s'%s%s></center>\n" % \
+                      (link, alt, title)
+                fileptr.write(txt)
+            elif item.name == mdUL:
+                fileptr.write('<ul>\n')
+                for line in item.childs:
+                    txt = self.parse_line(line.text[2:].strip())
+                    fileptr.write('%s<li>%s</li>\n' % (self.indent, txt))
+                fileptr.write('</ul>\n')
+            elif item.name == mdOL:
+                fileptr.write('<ol>\n')
+                for line in item.childs:
+                    index = line.text.index(' ')
+                    txt = self.parse_line(line.text[index + 1:].strip())
+                    fileptr.write('%s<li>%s</li>\n' % (self.indent, txt))
+                fileptr.write('</ol>\n')
+            elif item.name == mdQB:
+                fileptr.write('<blockquote>\n')
+                fileptr.write('%s<p>\n' % self.indent)
+                for line in item.childs:
+                    suffix = '<br>\n' if line.text.endswith('   ') else '\n'
+                    txt = self.parse_line(line.text[1:].strip())
+                    fileptr.write('%s%s%s' % (self.indent, txt, suffix))
+                fileptr.write('</blockquote>\n')
+            elif item.name == mdHB:
+                for line in item.childs:
+                    fileptr.write('%s\n' % line.text)
+            elif item.name == mdCODE:
+                fileptr.write('<pre><code>\n')
+                for line in item.childs[1:-1]:
+                    fileptr.write('%s\n' % line.text)
+                fileptr.write('</code></pre>\n')
+            else:
+                indent = all(line.text.startswith(' ') for line in item.childs)
+                fileptr.write('<ul>\n') if indent else None
+                fileptr.write('<p>\n')
+                for line in item.childs:
+                    suffix = '<br>\n' if line.text.endswith('   ') else '\n'
+                    txt = self.parse_line(line.text.strip())
+                    fileptr.write('%s%s' % (txt, suffix))
+                fileptr.write('</p>\n')
+                fileptr.write('</ul>\n') if indent else None
+
+        # Write footer
+        if self.html_footer:
+            fileptr.write(HTML_FOOTER)
+
+
+save_html = MdToHtmlConverter()
