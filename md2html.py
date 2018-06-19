@@ -144,7 +144,8 @@ class MdLoader(object):
                     line.startswith('%d. ' % (len(self.last.childs) + 1)):
                 self.add_line(mdOL, mdLI, line)
             # Unordered list items
-            elif line.startswith(mdLI):
+            elif line.startswith(mdLI) or \
+                    line.startswith('+ ') or line.startswith('- '):
                 self.add_line(mdUL, mdLI, line)
             # Quote
             elif line.startswith(mdQL):
