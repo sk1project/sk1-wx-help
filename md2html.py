@@ -17,6 +17,8 @@
 # 	You should have received a copy of the GNU General Public License
 # 	along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
+import re
+
 mdMODEL = 'Markdown Model'
 mdOBJ = 'Markdown Object'
 mdGROUP = 'Markdown Group'
@@ -123,7 +125,9 @@ class MdLoader(object):
             elif not line.strip():
                 self.add_line(None, mdSPACE, line)
             # Horizontal rule
-            elif line.startswith(mdHRULE):
+            elif line.startswith(mdHRULE) \
+                    or line.startswith('***') \
+                    or line.startswith('___'):
                 self.add_line(None, mdHRULE, line)
             # Headers
             elif self.check_header(line):
@@ -188,7 +192,45 @@ class MdToHtmlConverter(object):
             setattr(self, key, value)
 
     def parse_line(self, line):
-        # TODO: needs to be implemented
+        # Bold emphasis
+        if '**' in line:
+            line = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', line)
+        if '__' in line:
+            line = re.sub(r'\_\_(.+?)\_\_', r'<b>\1</b>', line)
+        # Italic emphasis
+        if '*' in line:
+            line = re.sub(r'\*(.+?)\*', r'<i>\1</i>', line)
+        if '_' in line:
+            line = re.sub(r'\_(.+?)\_', r'<i>\1</i>', line)
+        # Strikethrough
+        if '~~' in line:
+            line = re.sub(r'\~\~(.+?)\~\~', r'<s>\1</s>', line)
+        # Inlined image
+        if '![' in line:
+            line = re.sub(r'\!\[(.+?)\]\((.+?) \"(.+?)\"\)',
+                          r"<img src='\2' alt='\1' title='\3'>", line)
+        if '![' in line:
+            line = re.sub(r'\!\[(.+?)\]\((.+?)\)',
+                          r"<img src='\2' alt='\1'>", line)
+        # Links
+        if '](' in line:
+            line = re.sub(r'\[(.+?)\]\((.+?) \"(.+?)\"\)',
+                          r"<a href='\2' title='\3'>\1</a>", line)
+        if '](' in line:
+            line = re.sub(r'\[(.+?)\]\((.+?)\)',
+                          r"<a href='\2'>\1</a>", line)
+        if ' http://' in line:
+            line = re.sub(r' http\:\/\/(.+?) ',
+                          r" <a href='http\:\/\/\1'>http\:\/\/\1</a> ", line)
+        if ' https://' in line:
+            line = re.sub(r' https\:\/\/(.+?) ',
+                          r" <a href='https\:\/\/\1'>https\:\/\/\1</a> ", line)
+        # Inline code
+        if '``' in line:
+            line = re.sub(r'\`\`(.+?)\`\`', r'<code>\1</code>', line)
+        if '`' in line:
+            line = re.sub(r'\`(.+?)\`', r'<code>\1</code>', line)
+
         return line
 
     def __call__(self, fileptr, model):
