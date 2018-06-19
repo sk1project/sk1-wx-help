@@ -191,26 +191,27 @@ class MdToHtmlConverter(object):
         for key, value in kwargs.iteritems():
             setattr(self, key, value)
 
-    def parse_line(self, line):
+    @staticmethod
+    def parse_line(line):
         # Bold emphasis
         if '**' in line:
             line = re.sub(r'\*\*(.+?)\*\*', r'<b>\1</b>', line)
         if '__' in line:
-            line = re.sub(r'\_\_(.+?)\_\_', r'<b>\1</b>', line)
+            line = re.sub(r'__(.+?)__', r'<b>\1</b>', line)
         # Italic emphasis
         if '*' in line:
             line = re.sub(r'\*(.+?)\*', r'<i>\1</i>', line)
         if '_' in line:
-            line = re.sub(r'\_(.+?)\_', r'<i>\1</i>', line)
+            line = re.sub(r'_(.+?)_', r'<i>\1</i>', line)
         # Strikethrough
         if '~~' in line:
-            line = re.sub(r'\~\~(.+?)\~\~', r'<s>\1</s>', line)
+            line = re.sub(r'~~(.+?)~~', r'<s>\1</s>', line)
         # Inlined image
         if '![' in line:
-            line = re.sub(r'\!\[(.+?)\]\((.+?) \"(.+?)\"\)',
+            line = re.sub(r'!\[(.+?)\]\((.+?) \"(.+?)\"\)',
                           r"<img src='\2' alt='\1' title='\3'>", line)
         if '![' in line:
-            line = re.sub(r'\!\[(.+?)\]\((.+?)\)',
+            line = re.sub(r'!\[(.+?)\]\((.+?)\)',
                           r"<img src='\2' alt='\1'>", line)
         # Links
         if '](' in line:
@@ -220,16 +221,16 @@ class MdToHtmlConverter(object):
             line = re.sub(r'\[(.+?)\]\((.+?)\)',
                           r"<a href='\2'>\1</a>", line)
         if ' http://' in line:
-            line = re.sub(r' http\:\/\/(.+?) ',
-                          r" <a href='http\:\/\/\1'>http\:\/\/\1</a> ", line)
+            line = re.sub(r' http://(.+?) ',
+                          r" <a href='http://\1'>http://\1</a> ", line)
         if ' https://' in line:
-            line = re.sub(r' https\:\/\/(.+?) ',
-                          r" <a href='https\:\/\/\1'>https\:\/\/\1</a> ", line)
+            line = re.sub(r' https://(.+?) ',
+                          r" <a href='https://\1'>https://\1</a> ", line)
         # Inline code
         if '``' in line:
-            line = re.sub(r'\`\`(.+?)\`\`', r'<code>\1</code>', line)
+            line = re.sub(r'``(.+?)``', r'<code>\1</code>', line)
         if '`' in line:
-            line = re.sub(r'\`(.+?)\`', r'<code>\1</code>', line)
+            line = re.sub(r'`(.+?)`', r'<code>\1</code>', line)
 
         return line
 
