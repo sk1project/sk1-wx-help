@@ -174,7 +174,7 @@ HTML_HEADER = "<!DOCTYPE html PUBLIC '-//W3C//DTD XHTML 1.0 Transitional//EN'"
 HTML_HEADER += """ 'http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd'>
 <html xmlns='http://www.w3.org/1999/xhtml'>
 <head>
-<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />
+<meta http-equiv='Content-Type' content='text/html; charset=utf-8' />%s
 </head>
 <body>
 """
@@ -184,6 +184,7 @@ HTML_FOOTER = "</body></html>"
 class MdToHtmlConverter(object):
     html_header = True
     html_footer = True
+    html_css = ''
     php_header = False
     php_footer = False
     indent = '    '
@@ -238,7 +239,11 @@ class MdToHtmlConverter(object):
     def __call__(self, fileptr, model):
         # Write header
         if self.html_header:
-            fileptr.write(HTML_HEADER)
+            css = ''
+            if self.html_css:
+                css = "\n<link rel='stylesheet' href='%s' " \
+                      "type='text/css' media='screen' />" % self.html_css
+            fileptr.write(HTML_HEADER % css)
 
         # Write body
         for item in model.childs:
