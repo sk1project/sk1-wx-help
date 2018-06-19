@@ -28,6 +28,9 @@ import utils
 SOURCE_PATH = 'test/'
 BUILD_PATH = 'build/'
 
+if os.path.lexists(BUILD_PATH):
+    shutil.rmtree(BUILD_PATH)
+
 shutil.copytree(SOURCE_PATH, BUILD_PATH)
 
 md_files = utils.get_files_tree(BUILD_PATH, 'md')
