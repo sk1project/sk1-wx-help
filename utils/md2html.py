@@ -222,13 +222,24 @@ class MdToHtmlConverter(object):
         if '](' in line:
             line = re.sub(r'\[(.+?)\]\((.+?)\)',
                           r"<a href='\2'>\1</a>", line)
-        if ' http://' in line:
+        if 'http://' in line:
             line = re.sub(r' http://(.+?) ',
                           r" <a href='http://\1'>http://\1</a> ", line)
-        if ' https://' in line:
+            line = re.sub(r' http://(.+?)$',
+                          r" <a href='http://\1'>http://\1</a> ", line)
+            line = re.sub(r'^http://(.+?) ',
+                          r"<a href='http://\1'>http://\1</a> ", line)
+            line = re.sub(r'^http://(.+?)$',
+                          r"<a href='http://\1'>http://\1</a> ", line)
+        if 'https://' in line:
             line = re.sub(r' https://(.+?) ',
                           r" <a href='https://\1'>https://\1</a> ", line)
-        # Inline code
+            line = re.sub(r' https://(.+?)$',
+                          r" <a href='https://\1'>https://\1</a> ", line)
+            line = re.sub(r'^https://(.+?) ',
+                          r"<a href='https://\1'>https://\1</a> ", line)
+            line = re.sub(r'^https://(.+?)$',
+                          r"<a href='https://\1'>https://\1</a> ", line)
         if '``' in line:
             line = re.sub(r'``(.+?)``', r'<code>\1</code>', line)
         if '`' in line:
@@ -292,10 +303,10 @@ class MdToHtmlConverter(object):
                 for line in item.childs:
                     fileptr.write('%s\n' % line.text)
             elif item.name == mdCODE:
-                fileptr.write('<pre><code>\n')
+                fileptr.write('<pre>')
                 for line in item.childs[1:-1]:
                     fileptr.write('%s\n' % line.text)
-                fileptr.write('</code></pre>\n')
+                fileptr.write('</pre>\n')
             else:
                 indent = all(line.text.startswith(' ') for line in item.childs)
                 fileptr.write('<ul>\n') if indent else None
