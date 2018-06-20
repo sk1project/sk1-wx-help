@@ -46,6 +46,7 @@ mdLINE = 'LINE'
 
 mdHB = 'HTML'
 mdCODE = '```'
+mdTABLE = 'TABLE'
 
 
 class MdObject(object):
@@ -96,13 +97,18 @@ class MdLoader(object):
             return line.split(' ')[0] + ' ' in mdHEADERS
         return False
 
+    def rotate_last(self, group=None):
+        if self.last.name == mdTABLE and '---' not in self.last.childs[1].text:
+            self.last.name = mdPARA
+        self.last = group
+
     def add_line(self, group_name, name, line):
         if group_name is None:
-            self.last = None
+            self.rotate_last()
             self.model.append(MdLine(name, line))
         else:
             if not self.last or self.last.name != group_name:
-                self.last = MdGroup(group_name)
+                self.rotate_last(MdGroup(group_name))
                 self.model.append(self.last)
             self.last.append(MdLine(name, line))
 
@@ -153,6 +159,9 @@ class MdLoader(object):
             # HTML block
             elif line.strip().startswith('<') and line.strip().endswith('>'):
                 self.add_line(mdHB, mdLINE, line)
+            # Table
+            elif '|' in line:
+                self.add_line(mdTABLE, mdLINE, line)
             # Paragraph
             else:
                 self.add_line(mdPARA, mdLINE, line)
