@@ -314,6 +314,7 @@ class MdToHtmlConverter(object):
                     suffix = '<br>\n' if line.text.endswith('   ') else '\n'
                     txt = self.parse_line(line.text[1:].strip())
                     fileptr.write('%s%s%s' % (self.indent, txt, suffix))
+                fileptr.write('%s</p>\n' % self.indent)
                 fileptr.write('</blockquote>\n')
             elif item.name == mdHB:
                 for line in item.childs:
@@ -342,7 +343,7 @@ class MdToHtmlConverter(object):
                     indx = ths.index(th)
                     align = aligns[indx] if indx < len(aligns) else ''
                     fileptr.write(self.indent * 3 + '<th%s>' % align)
-                    fileptr.write(th + '</th>')
+                    fileptr.write(th + '</th>\n')
                 fileptr.write(self.indent * 2 + '</tr>\n')
                 fileptr.write(self.indent + '</thead>\n')
 
@@ -354,7 +355,7 @@ class MdToHtmlConverter(object):
                         indx = tds.index(td)
                         align = aligns[indx] if indx < len(aligns) else ''
                         fileptr.write(self.indent * 3 + '<td%s>' % align)
-                        fileptr.write(self.parse_line(td) + '</td>')
+                        fileptr.write(self.parse_line(td) + '</td>\n')
                     fileptr.write(self.indent * 2 + '</tr>\n')
                 fileptr.write(self.indent + '</tbody>\n')
                 fileptr.write('</table>\n')
