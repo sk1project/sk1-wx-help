@@ -354,7 +354,7 @@ class MdToHtmlConverter(object):
                         indx = tds.index(td)
                         align = aligns[indx] if indx < len(aligns) else ''
                         fileptr.write(self.indent * 3 + '<td%s>' % align)
-                        fileptr.write(td + '</td>')
+                        fileptr.write(self.parse_line(td) + '</td>')
                     fileptr.write(self.indent * 2 + '</tr>\n')
                 fileptr.write(self.indent + '</tbody>\n')
                 fileptr.write('</table>\n')
