@@ -132,6 +132,9 @@ class MdLoader(object):
             # Empty line
             elif not line.strip():
                 self.add_line(None, mdSPACE, line)
+            # Table
+            elif '|' in line:
+                self.add_line(mdTABLE, mdLINE, line)
             # Horizontal rule
             elif line.startswith(mdHRULE) \
                     or line.startswith('***') \
@@ -161,9 +164,6 @@ class MdLoader(object):
             # HTML block
             elif line.strip().startswith('<') and line.strip().endswith('>'):
                 self.add_line(mdHB, mdLINE, line)
-            # Table
-            elif '|' in line:
-                self.add_line(mdTABLE, mdLINE, line)
             # Paragraph
             else:
                 self.add_line(mdPARA, mdLINE, line)
@@ -327,9 +327,9 @@ class MdToHtmlConverter(object):
                 marks = self.parse_tr(item.childs[1].text)
                 aligns = []
                 for mark in marks:
-                    if mark.startswith(':') and mark.enswith(':'):
+                    if mark.startswith(':') and mark.endswith(':'):
                         aligns.append(" align='center'")
-                    elif mark.enswith(':'):
+                    elif mark.endswith(':'):
                         aligns.append(" align='right'")
                     else:
                         aligns.append('')
