@@ -98,9 +98,10 @@ class MdLoader(object):
         return False
 
     def rotate_last(self, group=None):
-        if self.last and self.last.name == mdTABLE and \
-                '---' not in self.last.childs[1].text:
-            self.last.name = mdPARA
+        if self.last and self.last.name == mdTABLE:
+            if len(self.last.childs) < 3 or \
+                    '---' not in self.last.childs[1].text:
+                self.last.name = mdPARA
         self.last = group
 
     def add_line(self, group_name, name, line):
@@ -257,6 +258,11 @@ class MdToHtmlConverter(object):
 
         return line
 
+    @staticmethod
+    def parse_tr(line):
+        line = line.strip().strip('|')
+        return [item.strip() for item in line.split('|')]
+
     def __call__(self, fileptr, model):
         # Write header
         if self.html_header:
@@ -317,6 +323,41 @@ class MdToHtmlConverter(object):
                 for line in item.childs[1:-1]:
                     fileptr.write('%s\n' % line.text)
                 fileptr.write('</pre>\n')
+            elif item.name == mdTABLE:
+                marks = self.parse_tr(item.childs[1].text)
+                aligns = []
+                for mark in marks:
+                    if mark.startswith(':') and mark.enswith(':'):
+                        aligns.append(" align='center'")
+                    elif mark.enswith(':'):
+                        aligns.append(" align='right'")
+                    else:
+                        aligns.append('')
+
+                fileptr.write('<table>\n')
+                fileptr.write(self.indent + '<thead>\n')
+                fileptr.write(self.indent * 2 + '<tr>\n')
+                ths = self.parse_tr(item.childs[0].text)
+                for th in ths:
+                    indx = ths.index(th)
+                    align = aligns[indx] if indx < len(aligns) else ''
+                    fileptr.write(self.indent * 3 + '<th%s>' % align)
+                    fileptr.write(th + '</th>')
+                fileptr.write(self.indent * 2 + '</tr>\n')
+                fileptr.write(self.indent + '</thead>\n')
+
+                fileptr.write(self.indent + '<tbody>\n')
+                for child in item.childs[2:]:
+                    tds = self.parse_tr(child.text)
+                    fileptr.write(self.indent * 2 + '<tr>\n')
+                    for td in tds:
+                        indx = tds.index(td)
+                        align = aligns[indx] if indx < len(aligns) else ''
+                        fileptr.write(self.indent * 3 + '<td%s>' % align)
+                        fileptr.write(td + '</td>')
+                    fileptr.write(self.indent * 2 + '</tr>\n')
+                fileptr.write(self.indent + '</tbody>\n')
+                fileptr.write('</table>\n')
             else:
                 indent = all(line.text.startswith(' ') for line in item.childs)
                 fileptr.write('<ul>\n') if indent else None
